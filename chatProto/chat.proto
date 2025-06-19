@@ -1,0 +1,20 @@
+edition = "2023";
+
+package chat;
+
+option go_package = "./chatProto";
+
+import "google/protobuf/timestamp.proto";
+
+message ChatMessage {
+  string channel = 1; // 채널 (채팅방 ID)
+  string sender = 2;    // 송신자
+  string receiver = 3;  // 수신자
+  string content = 4; // 내용
+  google.protobuf.Timestamp timestamp = 5; // 타임스탬프
+}
+
+service ChatService {
+  // ChatStream: 양방향 스트리밍 RPC
+  rpc ChatStream(stream ChatMessage) returns (stream ChatMessage);
+}
