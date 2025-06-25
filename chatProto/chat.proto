@@ -2,7 +2,7 @@ edition = "2023";
 
 package chat;
 
-option go_package = "./chatProto";
+option go_package = "gRPC-based-chatting/chatProto;chatProto";
 
 import "google/protobuf/timestamp.proto";
 
