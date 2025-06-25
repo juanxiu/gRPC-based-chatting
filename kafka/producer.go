@@ -34,6 +34,7 @@ func NewChatProducer(broker string, topic string) (*ChatProducer, error) {
 		Producer: producer,
 		// Event: make(chan kafka.event, 100),
 		Topic: topic,
+		done:  make(chan struct{}),
 	}
 
 	go cp.handleEvents()
@@ -62,23 +63,21 @@ func (cp *ChatProducer) handleEvents() {
 }
 
 // 메시지 전송 함수
-func (cp *ChatProducer) SendAsyncMessage(userID string, message []byte) {
+func (cp *ChatProducer) SendAsyncMessage(key string, message []byte) error {
 	msg := &kafka.Message{
 		TopicPartition: kafka.TopicPartition{
 			Topic:     &cp.Topic,
 			Partition: kafka.PartitionAny,
 		},
-		Key:   []byte(userID),
+		Key:   []byte(key),
 		Value: message,
 	}
 
-	// Produce를 직접 호출
 	err := cp.Producer.Produce(msg, nil)
 	if err != nil {
 		log.Printf("메시지 전송 실패: %v", err)
-		return err
 	}
-
+	return err
 }
 
 // producer 종료 처리
