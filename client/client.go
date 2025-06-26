@@ -1,11 +1,13 @@
-package main
+package client
 
 import (
 	"context"
 	"flag"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	pb "gRPC-based-chatting/chatProto"
 )
@@ -22,7 +24,7 @@ type Client struct {
 // TODO: log 설정 필요
 
 // gRPC 서버에 연결 및 새로운 클라이언트 생성
-func newClient() (*Client, error) {
+func NewClient() (*Client, error) {
 	// gRPC 서버에 연결
 	// TODO: TLS 인증서 설정 필요, 현재는 설정 안함
 	conn, err := grpc.NewClient(*serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -39,8 +41,14 @@ func newClient() (*Client, error) {
 	}, nil
 }
 
+// 사용자 구분을 위한 uuid 발급
+func SetUserId() {
+	uid := uuid.NewString()
+	metadata.Pairs("user_uuid", uid)
+}
+
 // 양방향 스트리밍 채팅 시작
-func (c *Client) startChat() error {
+func (c *Client) StartChat() error {
 	// TODO: context 설정
 	ctx := context.TODO()
 
@@ -52,15 +60,15 @@ func (c *Client) startChat() error {
 
 	defer stream.CloseSend()
 
-	go c.receiveMessages(stream)
+	go c.ReceiveMessages(stream)
 
 	// TODO: Wails 작성 후 변경
-	// return c.sendMessages(stream)
+	// return c.SendMessages(stream)
 	return nil
 }
 
 // 서버로부터 메시지 수신
-func (c *Client) receiveMessages(stream pb.ChatService_ChatStreamClient) error {
+func (c *Client) ReceiveMessages(stream pb.ChatService_ChatStreamClient) error {
 	for {
 		_, err := stream.Recv()
 		if err != nil {
@@ -80,7 +88,7 @@ func (c *Client) receiveMessages(stream pb.ChatService_ChatStreamClient) error {
 // }
 
 // 클라이언트 연결 종료
-func (c *Client) close() error {
+func (c *Client) Close() error {
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
 			return err
@@ -93,14 +101,14 @@ func main() {
 	flag.Parse()
 
 	// 클라이언트 생성
-	client, err := newClient()
+	client, err := NewClient()
 	if err != nil {
 		return
 	}
-	defer client.close()
+	defer client.Close()
 
 	// 채팅 시작
-	if err := client.startChat(); err != nil {
+	if err := client.StartChat(); err != nil {
 		return
 	}
 }
