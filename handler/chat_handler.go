@@ -2,20 +2,23 @@ package handler
 
 import (
 	"gRPC-based-chatting/chatProto"
+	"gRPC-based-chatting/kafka"
 	"io"
 	"log"
 	"sync"
 )
 
 type ChatHandler struct {
-	chatProto.UnimplementedChatServiceServer
+	chatProto.UnimplementedChatServiceServer // proto 에 정의된 ChatService
+	Producer                                 *kafka.ChatProducer
 	// 채널별로 클라이언트 스트림을 관리
 	channels map[string]map[string]chatProto.ChatService_ChatStreamServer
 	mu       sync.Mutex
 }
 
-func NewChatHandler() *ChatHandler {
+func NewChatHandler(producer *kafka.ChatProducer) *ChatHandler { // kafka 발행도 하도록
 	return &ChatHandler{
+		Producer: producer,
 		channels: make(map[string]map[string]chatProto.ChatService_ChatStreamServer),
 	}
 }
@@ -31,13 +34,16 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	if err != nil {
 		return err
 	}
-	userID = firstMsg.Sender
-	channel = firstMsg.Channel
+	userID = *firstMsg.Sender
+	channel = *firstMsg.Channel
 
-	// 스트림 등록
+	// 메시지를 kafka 로 전송
+	go h.Producer.SendAsyncMessage(channel+":"+userID, []byte(*firstMsg.Content))
+
+	// 스트림 등록: 클라이언트의 stream을 해당 채널의 map에 등록
 	h.mu.Lock()
 	if h.channels[channel] == nil {
-		h.channels[channel] = make(map[string]pb.ChatService_ChatStreamServer)
+		h.channels[channel] = make(map[string]chatProto.ChatService_ChatStreamServer)
 	}
 	h.channels[channel][userID] = stream
 	h.mu.Unlock()
@@ -49,11 +55,11 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	}()
 
 	// 첫 메시지도 브로드캐스트
-	h.broadcast(channel, firstMsg, userID)
+	h.BroadcastFromKafka(channel, firstMsg)
 
 	// 메시지 수신 및 브로드캐스트 루프
 	for {
-		msg, err := stream.Recv()
+		msg, err := stream.Recv() // 클라이언트 메시지 하나씩 읽어오기
 		if err == io.EOF {
 			return nil
 		}
@@ -61,19 +67,16 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 			log.Printf("stream recv error: %v", err)
 			return err
 		}
-		h.broadcast(channel, msg, userID)
+		h.BroadcastFromKafka(channel, msg) // 브로드 캐스트 함수 호출
 	}
 }
 
-// 브로드캐스트 함수
-func (h *ChatHandler) broadcast(channel string, msg *pb.ChatMessage, senderID string) {
+// consumer에서 호출할 broadcast 함수
+func (h *ChatHandler) BroadcastFromKafka(channel string, msg *chatProto.ChatMessage) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	for uid, s := range h.channels[channel] {
-		if uid == senderID {
-			continue // 자기 자신에게는 안 보냄 (원하면 제거)
-		}
-		go func(srv pb.ChatService_ChatStreamServer) {
+	for _, s := range h.channels[channel] {
+		go func(srv chatProto.ChatService_ChatStreamServer) {
 			if err := srv.Send(msg); err != nil {
 				log.Printf("send error: %v", err)
 			}
