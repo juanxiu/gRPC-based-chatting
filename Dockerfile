@@ -5,7 +5,7 @@ COPY . .
 RUN go mod download
 RUN go build -o chat-server main.go
 
-FROM debian:bullseye-slim
+FROM ubuntu:22.04
 WORKDIR /app
 COPY --from=builder /app/chat-server .
 CMD ["./chat-server"]

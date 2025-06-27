@@ -29,6 +29,6 @@ services:
     depends_on:
       - kafka
     ports:
-      - "50051"   # 필요시 여러 포트로 매핑
+      - "50051:50051"  # localhost:50051 포트 매핑 
     deploy:
       replicas: 2   # 컨슈머(서버) 인스턴스 2개 띄우기
