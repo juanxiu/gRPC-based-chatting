@@ -1,0 +1,166 @@
+:root {
+  --primary-color: #00bfff; /* More saturated sky blue */
+  --secondary-color: #e0e0e0;
+  --text-color: #333;
+  --light-grey: #f8f8f8;
+  --border-color: #ddd;
+  --sent-message-bg: var(--primary-color);
+  --sent-message-color: white;
+  --received-message-bg: #e0e0e0;
+  --received-message-color: var(--text-color);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.chat-room-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--light-grey);
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  box-sizing: border-box;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-header h2 {
+  color: var(--text-color);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px; /* Add some padding for scrollbar area */
+}
+
+.message {
+  display: flex; /* Use flex for bubble alignment */
+  flex-direction: column; /* Stack sender and text vertically */
+  margin-bottom: 15px; /* Increased space between messages */
+  max-width: 85%; /* Allow messages to take a bit more width */
+  padding: 12px 15px; /* Adjusted padding */
+  border-radius: 15px; /* More rounded corners */
+  word-break: break-word; /* Break long words */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* subtle shadow */
+}
+
+.message.sent {
+  align-self: flex-end;
+  background-color: var(--sent-message-bg);
+  color: var(--sent-message-color);
+  margin-left: auto; /* Push sent messages to the right */
+  border-bottom-right-radius: 5px; /* Tweak corner for tail effect */
+}
+
+.message.received {
+  align-self: flex-start;
+  background-color: var(--received-message-bg);
+  color: var(--received-message-color);
+  margin-right: auto; /* Push received messages to the left */
+  border-bottom-left-radius: 5px; /* Tweak corner for tail effect */
+}
+
+.message-sender {
+  font-weight: bold;
+  margin-bottom: 5px; /* Space between sender and text */
+  font-size: 0.9rem;
+  color: inherit; /* Inherit text color from parent bubble */
+}
+
+.message.received .message-sender {
+   color: #555; /* Slightly darker color for sender in received messages */
+}
+
+.message-text {
+  font-size: 0.95rem; /* Slightly smaller font size */
+  line-height: 1.4;
+}
+
+.no-messages {
+  text-align: center;
+  color: #888;
+  margin-top: 30px; /* Increased margin */
+  font-size: 1.1rem;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding-top: 10px; /* Space above input area */
+  border-top: 1px solid #eee; /* Separator above input */
+}
+
+.chat-input-area input[type="text"] {
+  flex-grow: 1;
+  padding: 12px 15px; /* Increased padding */
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* Match button border radius */
+  font-size: 1rem;
+  outline: none; /* Remove default outline */
+  transition: border-color 0.2s ease;
+}
+
+.chat-input-area input[type="text"]:focus {
+  border-color: var(--primary-color); /* Highlight border on focus */
+}
+
+/* Reusing and adjusting button styles for chat */
+.btn {
+  padding: 12px 20px; /* Adjusted padding */
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem; /* Adjusted font size */
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 80px;
+  box-sizing: border-box;
+}
+
+.btn.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn.secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+.btn.primary:hover {
+  background-color: transparent;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn.secondary:hover {
+  background-color: transparent;
+  color: var(--text-color);
+  border-color: var(--secondary-color);
+}
+
+/* Specific style for the Exit Room button */
+.chat-header .btn.secondary {
+  padding: 8px 15px; /* Smaller padding for header button */
+  font-size: 0.9rem;
+}

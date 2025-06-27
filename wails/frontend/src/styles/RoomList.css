@@ -1,0 +1,164 @@
+:root {
+  --primary-color: #4FC3F7;
+  --secondary-color: #e3f2fd;
+  --background-color: #f5f6fa;
+  --card-bg: #fff;
+  --text-color: #222;
+  --desc-color: #555;
+  --card-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  --border-radius: 28px;
+  --font-main: 'Inter', 'Arial', 'Helvetica', sans-serif;
+}
+
+/* 전체 배경 */
+.room-list-container {
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-main);
+  box-sizing: border-box;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 제목 */
+.room-list-container h2 {
+  color: var(--primary-color);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 36px;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+/* 채팅방 리스트 카드 */
+.room-items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px 0;
+  width: 90vw;
+  max-width: 480px;
+  border-radius: var(--border-radius);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  overflow-y: auto;
+  max-height: 44vh;
+  border: none;
+  transition: max-width 0.3s;
+}
+
+/* 스크롤바 숨기기 */
+.room-items::-webkit-scrollbar { display: none; }
+.room-items { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 리스트 아이템 */
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 32px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: 1.09rem;
+  transition: background 0.18s, color 0.18s;
+  background: transparent;
+}
+
+.room-item:last-child {
+  border-bottom: none;
+}
+
+.room-item:hover {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+/* 방 이름 */
+.room-name {
+  font-weight: 600;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 방 정보(인원수 등) */
+.room-meta {
+  display: flex;
+  align-items: center;
+  color: #888;
+  font-size: 0.98rem;
+  margin-left: 14px;
+}
+
+.user-count {
+  margin-right: 4px;
+}
+
+.dot {
+  font-size: 1.2rem;
+  line-height: 0;
+  margin-bottom: 2px;
+}
+
+/* 방 없음 안내 */
+.no-rooms {
+  padding: 28px 0;
+  color: #aaa;
+  text-align: center;
+  font-size: 1.02rem;
+  background: none;
+}
+
+/* 버튼 그룹 (세로 정렬) */
+.room-list-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 90vw;
+  max-width: 480px;
+  margin-top: 18px;
+}
+
+/* 버튼 스타일 */
+.room-list-buttons .btn {
+  padding: 15px 0;
+  border-radius: 22px;
+  border: none;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border: 2px solid transparent;
+}
+
+.room-list-buttons .btn.primary {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.room-list-buttons .btn.primary:hover {
+  background: #29b6f6;
+  color: #fff;
+}
+
+.room-list-buttons .btn.secondary {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.room-list-buttons .btn.secondary:hover {
+  background: #b3e5fc;
+  color: var(--primary-color);
+}
+
