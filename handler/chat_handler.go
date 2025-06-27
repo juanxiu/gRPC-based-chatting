@@ -90,3 +90,21 @@ func (h *ChatHandler) BroadcastFromKafka(channel string, msg *chatProto.ChatMess
 		}(s)
 	}
 }
+
+// 채널별 유저 ID 목록(복사본) 반환
+func (h *ChatHandler) GetChannels() map[string][]string {
+
+	h.mu.Lock()         // 다른 고루틴이 접근 못하도록 락
+	defer h.mu.Unlock() // 리턴되면 락 풀기
+
+	// 복사본 생성
+	result := make(map[string][]string)
+	for channel, users := range h.channels {
+		userIDs := make([]string, 0, len(users))
+		for userID := range users {
+			userIDs = append(userIDs, userID)
+		}
+		result[channel] = userIDs
+	}
+	return result
+}
