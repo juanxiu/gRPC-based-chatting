@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	"gRPC-based-chatting/chatProto"
@@ -16,7 +17,8 @@ import (
 func main() {
 
 	// kafka producer 생성
-	producer, err := kafka.NewChatProducer("kafka:9092", "chat-topic") // 컨테이너 통신이므로 서비스명으로
+	kafkaBroker := os.Getenv("KAFKA_BROKER")                          // "kafka:9092"
+	producer, err := kafka.NewChatProducer(kafkaBroker, "chat-topic") // 컨테이너 통신이므로 서비스명으로
 	if err != nil {
 		log.Fatalf("Kafka producer 생성 실패: %v", err)
 	}
@@ -26,7 +28,7 @@ func main() {
 	chatHandler := handler.NewChatHandler(producer)
 
 	// kafka consumer 생성
-	consumer, err := kafka.NewChatConsumer("kafka:9092", "chat-topic", "chat-group")
+	consumer, err := kafka.NewChatConsumer(kafkaBroker, "chat-topic", "chat-group")
 	if err != nil {
 		log.Fatalf("Kafka consumer 생성 실패: %v", err)
 	}
