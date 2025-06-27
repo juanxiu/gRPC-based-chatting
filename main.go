@@ -1,4 +1,4 @@
-package chat
+package main
 
 import (
 	"log"
@@ -40,7 +40,7 @@ func main() {
 		// value를 chatProto.ChatMessage로 역직렬화 (protobuf 사용)
 		var msg chatProto.ChatMessage
 		if err := proto.Unmarshal(value, &msg); err != nil {
-			log.Printf("unmarshal error: %v", err)
+			log.Printf("unmarshal(역직렬화) error: %v", err)
 			return
 		}
 

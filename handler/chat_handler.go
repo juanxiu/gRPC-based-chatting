@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"sync"
+
+	"google.golang.org/protobuf/proto"
 )
 
 type ChatHandler struct {
@@ -38,7 +40,12 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	channel = *firstMsg.Channel
 
 	// 메시지를 kafka 로 전송
-	go h.Producer.SendAsyncMessage(channel+":"+userID, []byte(*firstMsg.Content))
+	marshaled, err := proto.Marshal(firstMsg)
+	if err != nil {
+		log.Printf("marchal(직렬화) error: %v", err)
+	} else {
+		go h.Producer.SendAsyncMessage(channel+":"+userID, marshaled)
+	}
 
 	// 스트림 등록: 클라이언트의 stream을 해당 채널의 map에 등록
 	h.mu.Lock()
