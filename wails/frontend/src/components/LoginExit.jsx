@@ -9,10 +9,10 @@ function LoginExit({
     <div className="login-exit-main-container">
       <div className="login-exit-card">
         <div className="login-exit-left">
-          <div className="login-exit-logo">💬 SkyChat</div>
+          <div className="login-exit-logo">💬 CloudClub</div>
           <div className="login-exit-title">Connect</div>
           <div className="login-exit-desc">
-            Join chat rooms, share ideas, and make friends easily.
+            Join chat rooms, share ideas,<br/>and make friends easily.
           </div>
           <div className="login-exit-button-group">
             <button className="login-exit-btn login" onClick={onLogin}>Login</button>
@@ -20,7 +20,7 @@ function LoginExit({
           </div>
         </div>
         <div className="login-exit-right">
-          <img className="login-exit-illustration" src="(이미지 경로)" alt="Chat Illustration" />
+          {/* <img className="login-exit-illustration" src="(이미지 경로)" alt="Chat Illustration" /> */}
         </div>
       </div>
     </div>

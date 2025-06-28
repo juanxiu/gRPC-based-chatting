@@ -5,12 +5,12 @@ function RoomList({
   rooms,
   onJoinRoom,
   onCreateRoom,
-  onBackToLogin // Add new prop for back button handler
+  onBackToLogin
 }) {
   return (
-    <div className="room-list-container">
-      <div className="room-list-header">
-         <h2>채팅방 목록</h2>
+    <div className="room-list-container room-list-sidebar">
+      <div className="room-list-header"> 
+         <div>💬 CloudClub</div>
       </div>
 
       <ul className="room-items hide-scrollbar">
@@ -25,13 +25,13 @@ function RoomList({
             </li>
           ))
         ) : (
-          <li className="no-rooms">채팅방을 만들고 새로운 대화를 시작해보세요!</li>
+          <li className="no-rooms">Create a room and<br/> start a new conversation!</li>
         )}
       </ul>
 
       <div className="room-list-buttons">
-        <button className="btn primary create-room-btn" onClick={onCreateRoom}>채팅방 생성</button>
-        <button className="btn secondary back-to-login-btn" onClick={onBackToLogin}>메인 화면</button>
+        <button className="btn primary create-room-btn" onClick={onCreateRoom}>Create Room</button>
+        <button className="btn secondary back-to-login-btn" onClick={onBackToLogin}>Main Menu</button>
       </div>
     </div>
   );

@@ -1,22 +1,8 @@
-:root {
-  --primary-color: #4FC3F7;
-  --secondary-color: #e3f2fd;
-  --background-color: #f5f6fa; /* 아주 연한 회색 */
-  --card-bg: #fff;
-  --text-color: #222;
-  --desc-color: #555;
-  --card-shadow: 0 4px 32px rgba(0,0,0,0.08);
-  --border-radius: 36px;
-  --side-padding: max(7vw, 40px); /* 좌측 여백을 화면비에 따라 조정 */
-  --font-main: 'Inter', 'Arial', 'Helvetica', sans-serif;
-}
-
-/* 스크롤바 완전히 숨기기 (body 및 주요 컨테이너) */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 스크롤 자체를 차단 */
+  overflow: hidden;
   box-sizing: border-box;
   font-family: var(--font-main);
 }
@@ -41,10 +27,10 @@ html, body {
   background: var(--card-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
-  width: 90vw;
-  max-width: 1000px;
+  width: 100vw;
+  max-width: 900px;
   min-width: 300px;
-  height: 70vh;
+  height: 75vh;
   max-height: 650px;
   min-height: 340px;
   overflow: hidden;
@@ -58,17 +44,13 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding-left: var(--side-padding);
-  padding-right: 40px;
-  padding-top: 0;
-  padding-bottom: 0;
+  margin-left: 80px;
   background: var(--card-bg);
   min-width: 200px;
-  max-width: 560px;
+  max-width: 500px;
   box-sizing: border-box;
 }
 
-/* 로고/앱명 */
 .login-exit-logo {
   font-weight: 600;
   color: var(--primary-color);
@@ -109,7 +91,7 @@ html, body {
   flex-direction: column;
   gap: 14px;
   width: 100%;
-  max-width: 220px;
+  max-width: 200px;
   align-items: stretch;
   margin-bottom: 0;
 }
@@ -117,7 +99,7 @@ html, body {
 /* 버튼 스타일 */
 .login-exit-btn {
   padding: 13px 0;
-  border-radius: 24px;
+  border-radius: 16px;
   border: none;
   font-size: 1.01rem;
   font-weight: 600;
@@ -166,15 +148,4 @@ html, body {
   box-shadow: 0 2px 12px rgba(79,195,247,0.10);
   height: auto;
   display: block;
-}
-
-/* 스크롤바 숨기기 (웹킷, 파이어폭스, IE/Edge) */
-body, .login-exit-main-container, .login-exit-card {
-  -ms-overflow-style: none; /* IE, Edge */
-  scrollbar-width: none; /* Firefox */
-}
-body::-webkit-scrollbar,
-.login-exit-main-container::-webkit-scrollbar,
-.login-exit-card::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
 }

@@ -26,13 +26,13 @@ function App() {
       console.log("Message listener unregistered.");
     };
   }, []);
-  
+
   // Handlers
   const handleLogin = () => {
     SetUserId();
-    setCurrentView('roomList');
+    setCurrentView('chatRoom');
   };
-  
+
   const handleExit = () => {
     Close()
     Quit();
@@ -41,29 +41,28 @@ function App() {
   const handleBackToLogin = () => {
     setCurrentView('login');
   };
-  
+
   const handleCreateRoom = () => {
     // 새로운 채팅방 생성
     const newRoomId = uuidv4() // 채팅방ID는 uuid 기반
-    const newRoomName = `채팅방 ${rooms.length + 1}`;
+    const newRoomName = `Chatroom ${rooms.length + 1}`;
     const newRoom = { id: newRoomId, name: newRoomName, userCount: 0 };
     setRooms([...rooms, newRoom]);
     handleJoinRoom(newRoomId); // 생성 후 Join
   };
-  
+
   const handleJoinRoom = (roomId) => {
     const roomToJoin = rooms.find(room => room.id === roomId);
     if (!roomToJoin) return;
-    
+
     // 이미 가입한 방인지 확인
     const alreadyJoined = joinedRooms.some(room => room.id === roomId);
     if (!alreadyJoined) {
       setJoinedRooms(prev => [
         ...prev,
-        { id: roomToJoin.id, name: roomToJoin.name } // joinedRooms에서는 userCount를 추적하지 않아도 됨
+        { id: roomToJoin.id, name: roomToJoin.name }
       ]);
 
-      // rooms 상태 업데이트: userCount 증가
       setRooms(prevRooms =>
         prevRooms.map(room =>
           room.id === roomId ? { ...room, userCount: (room.userCount || 0) + 1 } : room
@@ -74,7 +73,13 @@ function App() {
     }
 
     setActiveRoom(roomToJoin);
-    setMessages([]);
+    // setMessages([]);
+    setMessages([{
+      channel: 1,
+      sender: 1,
+      content: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Totam praesentium possimus nulla asperiores aliquid velit iusto ab, consequuntur, dolor rem repudiandae nostrum voluptatum harum! Possimus a repudiandae saepe voluptatum totam!",
+      timestamp: new Date(Date.now()).toISOString()
+    }]);
     setCurrentView('chatRoom');
   };
 
@@ -96,41 +101,54 @@ function App() {
     setMessages(prevMessages => [...prevMessages, message]);
   };
 
-  // 채팅방 이동
-  const handleMoveRoom = () => {
-    setActiveRoom(null);
-    setMessages([]);
-    setCurrentView('roomList');
-  };
-
   const handleExitRoom = (roomId) => {
     setActiveRoom(null);
     setMessages([]);
     CloseChat(roomId) // gRPC CloseChat 호출
 
-    // rooms 상태 업데이트: userCount 감소
+    setJoinedRooms(prev => prev.filter(room => room.id !== roomId));
+
     setRooms(prevRooms =>
       prevRooms.map(room =>
         room.id === roomId ? { ...room, userCount: Math.max(0, (room.userCount || 0) - 1) } : room // userCount가 0 미만이 되지 않도록 처리
       )
     );
 
-    setCurrentView('roomList');
+    setCurrentView('chatRoom');
   }
 
-  // Render the appropriate component based on the current view
   const renderView = () => {
     switch (currentView) {
       case 'login':
         return <LoginExit onLogin={handleLogin} onExit={handleExit} />;
-      case 'roomList':
-        return <RoomList rooms={rooms} onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} onBackToLogin={handleBackToLogin} />;
       case 'chatRoom':
-        return <ChatRoom roomName={activeRoom?.name} messages={messages} onSendMessage={handleSendMessage} onMoveToRoomList={handleMoveRoom} onLeaveChatRoom={() => handleExitRoom(activeRoom?.id)} />;
+        console.log(activeRoom)
+        return (
+          <div className="main-layout">
+              <RoomList
+                rooms={rooms}
+                onJoinRoom={handleJoinRoom}
+                onCreateRoom={handleCreateRoom}
+                onBackToLogin={handleBackToLogin}
+              />
+              {activeRoom ? (
+                <ChatRoom
+                  roomName={activeRoom.name}
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onLeaveChatRoom={() => handleExitRoom(activeRoom.id)}
+                />
+              ) : (
+                <div className="chat-room-no-room">
+                </div>
+              )}
+            </div>
+        );
       default:
         return <LoginExit onLogin={handleLogin} onExit={handleExit} />;
     }
   };
+
 
   return (
     <div id="App">
