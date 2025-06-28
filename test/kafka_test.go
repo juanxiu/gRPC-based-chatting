@@ -12,7 +12,7 @@ import (
 func TestKafkaProtobufProduce(t *testing.T) {
 	// 1. Kafka 프로듀서 생성
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:10000",
+		"bootstrap.servers": "localhost:10000", // 로컬호스트 주소로
 	})
 	if err != nil {
 		t.Fatalf("Kafka 프로듀서 생성 실패: %v", err)
@@ -43,11 +43,17 @@ func TestKafkaProtobufProduce(t *testing.T) {
 		t.Fatalf("Kafka 메시지 전송 실패: %v", err)
 	}
 
-	// 5. Delivery report(전송 성공/실패) 확인
+	// 전송 에러 확인
 	e := <-producer.Events()
 	m, ok := e.(*kafka.Message)
-	if ok && m.TopicPartition.Error != nil {
-		t.Fatalf("Kafka 메시지 실제 전송 실패: %v", m.TopicPartition.Error)
+	if ok {
+		if m.TopicPartition.Error != nil {
+			t.Fatalf("Kafka 메시지 실제 전송 실패: %v", m.TopicPartition.Error)
+		} else {
+			t.Logf("Kafka 메시지 실제 전송 성공: %v", m.TopicPartition)
+		}
+	} else {
+		t.Fatalf("Delivery report 타입 변환 실패: %v", e)
 	}
 
 	// 6. 전송 완료 대기 (추가 안전장치)

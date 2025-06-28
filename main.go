@@ -26,7 +26,7 @@ func main() {
 	chatHandler := handler.NewChatHandler(producer)
 
 	// kafka consumer 생성
-	consumer, err := kafka.NewChatConsumer("kafka:9092", "chat-topic", "chat-group")
+	consumer, err := kafka.NewChatConsumer("kafka:9092", "chat-topic", "chat-group-new")
 	if err != nil {
 		log.Fatalf("Kafka consumer 생성 실패: %v", err)
 	}

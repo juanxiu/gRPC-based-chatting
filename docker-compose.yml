@@ -12,10 +12,10 @@ services:
     environment:
       # KRaft 설정
       - KAFKA_ENABLE_KRAFT=yes 
-      - KAFKA_CFG_BROKER_ID=0 #브로커id 
-      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_BROKER_ID=1 #브로커id 와 node id 는 동일하게 
+      - KAFKA_CFG_NODE_ID=1
       - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw # 고유 클러스터 ID, 모든 브로커에 동일하게 설정
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093 # 단일 브로커 
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093 # 
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       # 리스너 설정 
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
@@ -36,9 +36,9 @@ services:
   chat-server:
     build: .
     environment:
-      - KAFKA_BROKER=kafka:9092   # 외부 컨테이너에서 Kafka 컨테이너 접근
+      - KAFKA_BROKER=172.19.0.2:9092   # 외부 컨테이너에서 Kafka 컨테이너 접근
       - KAFKA_TOPIC=chat-topic
-      - KAFKA_GROUP=chat-group
+      - KAFKA_GROUP=chat-group-new # 새 그룹으로 
     depends_on:
       - kafka
     # ports:
