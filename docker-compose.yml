@@ -1,4 +1,7 @@
 
+networks:
+  kafka_network:
+
 services:
   kafka:
     image: bitnami/kafka:latest # KRaft 모드: 주키퍼 필요없음 

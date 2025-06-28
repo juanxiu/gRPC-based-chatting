@@ -80,6 +80,7 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 
 // consumer에서 호출할 broadcast 함수
 func (h *ChatHandler) BroadcastFromKafka(channel string, msg *chatProto.ChatMessage) {
+	log.Printf("[Kafka] 채널=%s, sender=%s, content=%s", channel, msg.GetSender(), msg.GetContent()) // 메시지 수신 로그
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	for _, s := range h.channels[channel] {

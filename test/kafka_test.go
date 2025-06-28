@@ -12,7 +12,7 @@ import (
 func TestKafkaProtobufProduce(t *testing.T) {
 	// 1. Kafka 프로듀서 생성
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:10000",
 	})
 	if err != nil {
 		t.Fatalf("Kafka 프로듀서 생성 실패: %v", err)
