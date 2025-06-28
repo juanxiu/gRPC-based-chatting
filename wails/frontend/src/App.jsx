@@ -19,11 +19,8 @@ function App() {
 
   useEffect(() => {
     EventsOn("newMessage", handleReceiveMessage);
-    console.log("Message listener registered.");
-
     return () => {
       EventsOff("newMessage");
-      console.log("Message listener unregistered.");
     };
   }, []);
 
@@ -69,23 +66,18 @@ function App() {
         )
       );
 
-      StartChat(); // gRPC StartChat 호출
+      StartChat(roomToJoin.id); // gRPC StartChat 호출
     }
 
     setActiveRoom(roomToJoin);
-    // setMessages([]);
-    setMessages([{
-      channel: 1,
-      sender: 1,
-      content: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Totam praesentium possimus nulla asperiores aliquid velit iusto ab, consequuntur, dolor rem repudiandae nostrum voluptatum harum! Possimus a repudiandae saepe voluptatum totam!",
-      timestamp: new Date(Date.now()).toISOString()
-    }]);
+    setMessages([]);
     setCurrentView('chatRoom');
   };
 
-  const handleSendMessage = (messageText) => {
+  const handleSendMessage = async (messageText) => {
     const timestamp = new Date(Date.now()).toISOString();
-    const uuid = GetUserId()
+    const uuid = await GetUserId()
+    console.log(uuid)
     const newMessage = {
       channel: activeRoom.id,
       sender: uuid,
@@ -93,8 +85,7 @@ function App() {
       timestamp: timestamp
     };
 
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    SendChatMessage(newMessage)
+    await SendChatMessage(newMessage)
   };
 
   const handleReceiveMessage = (message) => {

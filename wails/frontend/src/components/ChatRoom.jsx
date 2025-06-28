@@ -10,7 +10,12 @@ function ChatRoom({
   onLeaveChatRoom // Prop for leaving the current chat room
 }) {
   const [newMessage, setNewMessage] = useState('');
+  const [userId, setUserId] = useState('');
   const messagesEndRef = useRef(null); // Ref for auto-scrolling
+
+  useEffect(() => {
+    GetUserId().then(id => setUserId(id));
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,7 +52,7 @@ function ChatRoom({
       <div className="chat-messages hide-scrollbar">
         {messages.length > 0 ? (
           messages.map((message, index) => (
-            <div key={index} className={`message ${message.sender === GetUserId() ? 'sent' : 'received'}`}> 
+            <div key={index} className={`message ${message.sender === userId ? 'sent' : 'received'}`}> 
               <div className="message-sender">{message.sender}:</div>
               <div className="message-text">{message.content}</div>
             </div>

@@ -115,6 +115,11 @@ func (c *Client) StartChat(chanId string) error {
 	}
 
 	c.streams[chanId] = stream
+
+	if c.messageChan == nil {
+		c.messageChan = make(chan JSMessage, 10)
+	}
+
 	log.Printf("스트림 생성 완료")
 
 	go c.ReceiveMessages(chanId)
@@ -149,9 +154,9 @@ func (c *Client) SendMessages(chanId string) {
 
 		// pb.ChatMessage 구조체 생성 및 포인터 할당
 		pbMsg := &pb.ChatMessage{
-			Channel:   &jsMsg.Channel,
-			Sender:    &jsMsg.Sender,
-			Content:   &jsMsg.Content,
+			Channel:   jsMsg.Channel,
+			Sender:    jsMsg.Sender,
+			Content:   jsMsg.Content,
 			Timestamp: timestamppb.New(parsedTime),
 		}
 
