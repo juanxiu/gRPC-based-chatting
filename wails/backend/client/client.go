@@ -24,12 +24,13 @@ var (
 )
 
 type Client struct {
-	conn        *grpc.ClientConn                           // 연결 정보
-	client      pb.ChatServiceClient                       // 클라이언트
-	streams     map[string]pb.ChatService_ChatStreamClient // 클라이언트 스트림(키: 채팅방 ID, 값: 스트림)
-	ctx         context.Context
-	messageChan chan JSMessage
-	wailsCtx    context.Context // wails 리액트 전달을 위한 컨텍스트
+	conn           *grpc.ClientConn                           // 연결 정보
+	client         pb.ChatServiceClient                       // 클라이언트
+	streams        map[string]pb.ChatService_ChatStreamClient // 클라이언트 스트림(키: 채팅방 ID, 값: 스트림)
+	ctx            context.Context
+	messageChan    chan JSMessage
+	messageHistory map[string][]JSMessage
+	wailsCtx       context.Context // wails 리액트 전달을 위한 컨텍스트
 }
 
 // 클라이언트 요청에 대한 마샬링을 위한 구조체
@@ -57,12 +58,13 @@ func NewClient() (*Client, error) {
 	ctx := context.Background()
 
 	return &Client{
-		conn:        conn,
-		client:      client,
-		streams:     make(map[string]pb.ChatService_ChatStreamClient),
-		ctx:         ctx,
-		messageChan: make(chan JSMessage, 10),
-		wailsCtx:    nil,
+		conn:           conn,
+		client:         client,
+		streams:        make(map[string]pb.ChatService_ChatStreamClient),
+		ctx:            ctx,
+		messageChan:    make(chan JSMessage, 10),
+		messageHistory: make(map[string][]JSMessage),
+		wailsCtx:       nil,
 	}, nil
 }
 
@@ -71,7 +73,7 @@ func (c *Client) SetWailsContext(ctx context.Context) {
 }
 
 // 사용자 구분을 위한 uuid 발급
-func (c *Client) SetUserId() {
+func (c *Client) SetUserId() string {
 	md, ok := metadata.FromOutgoingContext(c.ctx)
 	var uid string
 
@@ -80,13 +82,14 @@ func (c *Client) SetUserId() {
 		if len(val) > 0 { // 패닉 방지
 			uid = val[0]
 			log.Printf("%s가 이미 설정되어 있음", uid)
-			return
+			return uid
 		}
 	}
 
 	uid = uuid.NewString()
 	c.ctx = metadata.AppendToOutgoingContext(c.ctx, "user_uuid", uid)
 	log.Printf("%s 설정 완료", uid)
+	return uid
 }
 
 func (c *Client) GetUserId() string {
@@ -115,10 +118,6 @@ func (c *Client) StartChat(chanId string) error {
 	}
 
 	c.streams[chanId] = stream
-
-	if c.messageChan == nil {
-		c.messageChan = make(chan JSMessage, 10)
-	}
 
 	log.Printf("스트림 생성 완료")
 
@@ -168,7 +167,6 @@ func (c *Client) SendMessages(chanId string) {
 
 		if err := c.streams[chanId].Send(pbMsg); err != nil {
 			log.Printf("전송 실패: %v", err)
-			// 에러 발생해도 고루틴 종료하지 않고 계속 진행
 			continue
 		}
 		log.Printf("전송 성공: %s", pbMsg.Content)
@@ -177,11 +175,28 @@ func (c *Client) SendMessages(chanId string) {
 	log.Printf("SendMessages 종료: 채널 닫힘")
 }
 
+func (c *Client) AddMessageHistory(msg JSMessage) {
+	chanId := msg.Channel
+	if c.messageHistory[chanId] == nil {
+		c.messageHistory[chanId] = []JSMessage{}
+	}
+
+	c.messageHistory[chanId] = append(c.messageHistory[chanId], msg)
+	if len(c.messageHistory[chanId]) > 50 {
+		c.messageHistory[chanId] = c.messageHistory[chanId][1:]
+	}
+}
+
+// 채팅방 메시지 기록 반환 함수 추가
+func (c *Client) GetMessageHistory(chanId string) []JSMessage {
+	return c.messageHistory[chanId]
+}
+
 // 서버로부터 메시지 수신
 func (c *Client) ReceiveMessages(chanId string) error {
 	for {
 		if c.streams[chanId] == nil {
-			log.Printf("ReceiveMessages: 스트림이 닫혔습니다. 수신 루프 종료.")
+			log.Printf("ReceiveMessages: 스트림이 닫힘")
 			break
 		}
 
@@ -203,6 +218,7 @@ func (c *Client) ReceiveMessages(chanId string) error {
 			Content:   in.GetContent(),
 			Timestamp: in.GetTimestamp().AsTime().Format(time.RFC3339Nano),
 		}
+		c.AddMessageHistory(jsMsg)
 
 		if c.wailsCtx != nil {
 			runtime.EventsEmit(c.wailsCtx, "newMessage", jsMsg)
@@ -215,12 +231,7 @@ func (c *Client) ReceiveMessages(chanId string) error {
 
 // 단일 스트림 연결 종료
 func (c *Client) CloseChat(chanId string) {
-	// 메시지 채널 닫기
-	if c.messageChan != nil {
-		close(c.messageChan)
-		c.messageChan = nil
-		log.Printf("메시지 채널 닫힘")
-	}
+	c.messageHistory[chanId] = []JSMessage{}
 
 	// 스트림 Send 종료
 	if c.streams[chanId] != nil {

@@ -1,30 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GetUserId } from '../../wailsjs/go/client/Client'
-
 import '../styles/ChatRoom.css';
 
 function ChatRoom({
   roomName,
   messages,
   onSendMessage,
-  onLeaveChatRoom // Prop for leaving the current chat room
+  onExitRoom,
+  userId
 }) {
   const [newMessage, setNewMessage] = useState('');
-  const [userId, setUserId] = useState('');
-  const messagesEndRef = useRef(null); // Ref for auto-scrolling
-
-  useEffect(() => {
-    GetUserId().then(id => setUserId(id));
-  }, []);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // 입력값을 상태로 저장
   const handleInputChange = (event) => {
     setNewMessage(event.target.value);
   };
 
+  // 입력값을 전송
   const handleSendMessage = () => {
     if (newMessage.trim() !== '') {
       onSendMessage(newMessage);
@@ -32,9 +28,10 @@ function ChatRoom({
     }
   };
 
+  // 엔터를 누를 경우 메시지 전송
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault(); // Prevent default form submission
+      event.preventDefault();
       handleSendMessage();
     }
   };
@@ -44,8 +41,8 @@ function ChatRoom({
       <div className="chat-header">
         <h2>{roomName}</h2>
         <div className="chat-header-buttons">
-          {onLeaveChatRoom && (
-            <button className="btn danger" onClick={onLeaveChatRoom}>Leave Room</button>
+          {onExitRoom && (
+            <button className="btn danger" onClick={onExitRoom}>Leave Room</button>
           )}        
         </div>
       </div>
@@ -68,7 +65,7 @@ function ChatRoom({
           placeholder="Enter message..." 
           value={newMessage}
           onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
         />
         <button className="btn primary" onClick={handleSendMessage}>Send</button> 
       </div>
