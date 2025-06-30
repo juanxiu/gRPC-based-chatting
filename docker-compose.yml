@@ -15,7 +15,7 @@ services:
       - KAFKA_CFG_BROKER_ID=1 #브로커id 와 node id 는 동일하게 
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw # 고유 클러스터 ID, 모든 브로커에 동일하게 설정
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093 # 
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093 
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       # 리스너 설정 
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
