@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"gRPC-based-chatting/chatProto"
 	"gRPC-based-chatting/kafka"
 	"io"
@@ -36,8 +37,8 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	if err != nil {
 		return err
 	}
-	userID = *firstMsg.Sender
-	channel = *firstMsg.Channel
+	userID = firstMsg.Sender
+	channel = firstMsg.Channel
 
 	// 메시지를 kafka 로 전송
 	marshaled, err := proto.Marshal(firstMsg)
@@ -108,4 +109,24 @@ func (h *ChatHandler) GetChannels() map[string][]string {
 		result[channel] = userIDs
 	}
 	return result
+}
+
+// 현재 존재하는 채널(채팅방) ID 목록을 slice로 반환
+func (h *ChatHandler) GetChannelIDs() []string {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	channelIDs := make([]string, 0, len(h.channels))
+	for channel := range h.channels {
+		channelIDs = append(channelIDs, channel)
+	}
+	return channelIDs
+}
+
+// 채널 목록 클라이언트에게 반환
+func (h *ChatHandler) ListChannels(ctx context.Context, req *chatProto.ListChannelsRequest) (*chatProto.ListChannelsResponse, error) {
+	channelIDs := h.GetChannelIDs()
+	return &chatProto.ListChannelsResponse{
+		ChannelIds: channelIDs,
+	}, nil
 }
