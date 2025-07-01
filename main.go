@@ -15,8 +15,8 @@ import (
 
 func main() {
 
-	// kafka producer 생성                        // "kafka:9092"
-	producer, err := kafka.NewChatProducer("kafka:9092", "chat-topic") // 컨테이너 통신이므로 서비스명으로
+	// kafka producer 생성
+	producer, err := kafka.NewChatProducer("kafka:9092", "chat-topic") // 컨테이너 통신일 때는 서비스명(kafka)로 변경
 	if err != nil {
 		log.Fatalf("Kafka producer 생성 실패: %v", err)
 	}
