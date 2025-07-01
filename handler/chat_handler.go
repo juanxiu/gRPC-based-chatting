@@ -40,7 +40,7 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	userID = firstMsg.Sender
 	channel = firstMsg.Channel
 
-	// 메시지를 kafka 로 전송
+	// 첫 메시지가 실제 채팅 메시지라면 kafka 로 전송(나중에 else 처리 추가)
 	marshaled, err := proto.Marshal(firstMsg)
 	if err != nil {
 		log.Printf("marchal(직렬화) error: %v", err)
@@ -62,10 +62,7 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 		h.mu.Unlock()
 	}()
 
-	// 첫 메시지도 브로드캐스트
-	// h.BroadcastFromKafka(channel, firstMsg) 삭제
-
-	// 메시지 수신 및 브로드캐스트 루프
+	// 메시지 수신 및 kafka 전송 루프 (서버에서 직접 브로드캐스트 X)
 	for {
 		msg, err := stream.Recv() // 클라이언트 메시지 하나씩 읽어오기
 		if err == io.EOF {
@@ -75,7 +72,13 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 			log.Printf("stream recv error: %v", err)
 			return err
 		}
-		h.BroadcastFromKafka(channel, msg) // 브로드 캐스트 함수 호출
+
+		marshaled, err := proto.Marshal(msg)
+		if err != nil {
+			log.Printf("marshal(직렬화) error :%v", err)
+		} else {
+			go h.Producer.SendAsyncMessage(channel+":"+userID, marshaled)
+		}
 	}
 }
 
