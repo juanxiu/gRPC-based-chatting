@@ -63,7 +63,7 @@ func (h *ChatHandler) ChatStream(stream chatProto.ChatService_ChatStreamServer) 
 	}()
 
 	// 첫 메시지도 브로드캐스트
-	h.BroadcastFromKafka(channel, firstMsg)
+	// h.BroadcastFromKafka(channel, firstMsg) 삭제
 
 	// 메시지 수신 및 브로드캐스트 루프
 	for {
