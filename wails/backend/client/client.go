@@ -28,7 +28,7 @@ type Client struct {
 	client         pb.ChatServiceClient                       // 클라이언트
 	streams        map[string]pb.ChatService_ChatStreamClient // 클라이언트 스트림(키: 채팅방 ID, 값: 스트림)
 	ctx            context.Context
-	messageChan    chan JSMessage
+	messageChans   map[string]chan JSMessage
 	messageHistory map[string][]JSMessage
 	wailsCtx       context.Context // wails 리액트 전달을 위한 컨텍스트
 }
@@ -62,7 +62,7 @@ func NewClient() (*Client, error) {
 		client:         client,
 		streams:        make(map[string]pb.ChatService_ChatStreamClient),
 		ctx:            ctx,
-		messageChan:    make(chan JSMessage, 10),
+		messageChans:   make(map[string]chan JSMessage, 10),
 		messageHistory: make(map[string][]JSMessage),
 		wailsCtx:       nil,
 	}, nil
@@ -118,6 +118,7 @@ func (c *Client) StartChat(chanId string) error {
 	}
 
 	c.streams[chanId] = stream
+	c.messageChans[chanId] = make(chan JSMessage, 10)
 
 	log.Printf("스트림 생성 완료")
 
@@ -129,12 +130,15 @@ func (c *Client) StartChat(chanId string) error {
 
 // 클라이언트에서 고루틴 채널로 메시지 송신
 func (c *Client) SendChatMessage(msg JSMessage) error {
-	if c.messageChan == nil {
+	chanId := msg.Channel
+	messageChan := c.messageChans[chanId]
+
+	if messageChan == nil {
 		return fmt.Errorf("메시지 채널이 없음")
 	}
 
 	select {
-	case c.messageChan <- msg:
+	case messageChan <- msg:
 		return nil
 	default:
 		return fmt.Errorf("메시지 채널이 포화 또는 사용 불가 상태")
@@ -143,7 +147,7 @@ func (c *Client) SendChatMessage(msg JSMessage) error {
 
 // 서버로 메시지 송신
 func (c *Client) SendMessages(chanId string) {
-	for jsMsg := range c.messageChan {
+	for jsMsg := range c.messageChans[chanId] {
 		// JSMessage -> pb.ChatMessage로 변환
 		// time 변환
 		parsedTime, err := time.Parse(time.RFC3339Nano, jsMsg.Timestamp)
@@ -211,6 +215,8 @@ func (c *Client) ReceiveMessages(chanId string) error {
 			break
 		}
 
+		log.Printf("[Go] gRPC에서 메시지 수신: %+v", in)
+
 		// wails 전달을 위해 JSMessage로 변환
 		jsMsg := JSMessage{
 			Channel:   in.GetChannel(),
@@ -221,18 +227,31 @@ func (c *Client) ReceiveMessages(chanId string) error {
 		c.AddMessageHistory(jsMsg)
 
 		if c.wailsCtx != nil {
-			runtime.EventsEmit(c.wailsCtx, "newMessage", jsMsg)
 			log.Printf("wails로 메시지 전달: %+v", jsMsg)
+			runtime.EventsEmit(c.wailsCtx, "newMessage", jsMsg)
 		}
 	}
 	log.Printf("ReceiveMessages 고루틴 종료.")
 	return nil
 }
 
+func (c *Client) GetChannelList() []string {
+	result, err := c.client.ListChannels(c.ctx, &pb.ListChannelsRequest{})
+	if err != nil {
+		log.Printf("서버 요청 실패: %v", err)
+		return []string{} // 빈 slice 반환
+	}
+
+	if result == nil {
+		log.Printf("서버 응답이 nil")
+		return []string{}
+	}
+
+	return result.ChannelIds
+}
+
 // 단일 스트림 연결 종료
 func (c *Client) CloseChat(chanId string) {
-	c.messageHistory[chanId] = []JSMessage{}
-
 	// 스트림 Send 종료
 	if c.streams[chanId] != nil {
 		if err := c.streams[chanId].CloseSend(); err != nil {
@@ -240,16 +259,19 @@ func (c *Client) CloseChat(chanId string) {
 		}
 		c.streams[chanId] = nil
 	}
+
+	c.messageHistory[chanId] = []JSMessage{}
 	log.Printf("채팅방 나가기 완료")
 }
 
 // 클라이언트 연결 종료
 func (c *Client) Close() {
 	// 메시지 채널 닫기
-	if c.messageChan != nil {
-		close(c.messageChan)
-		c.messageChan = nil
-		log.Printf("메시지 채널 닫힘")
+	if c.messageChans != nil {
+		for _, messageChan := range c.messageChans {
+			close(messageChan)
+			messageChan = nil
+		}
 	}
 
 	// 모든 스트림 Send 종료

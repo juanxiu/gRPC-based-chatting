@@ -5,13 +5,13 @@ import LoginExit from './components/LoginExit';
 import RoomList from './components/RoomList';
 import ChatRoom from './components/ChatRoom';
 import { Quit, EventsOn, EventsOff } from '../wailsjs/runtime/runtime';
-import { SetUserId, GetUserId, StartChat, Close, CloseChat, SendChatMessage, GetMessageHistory } from '../wailsjs/go/client/Client'
+import { SetUserId, StartChat, Close, CloseChat, SendChatMessage, GetMessageHistory, GetChannelList } from '../wailsjs/go/client/Client'
 import { useEffect } from 'react';
 
 function App() {
   const [currentView, setCurrentView] = useState('login');
   const [userId, setUserId] = useState('');
-  const [activeRoom, setActiveRoom] = useState();
+  const [activeRoom, setActiveRoom] = useState(null);
   const [joinedRooms, setJoinedRooms] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -24,11 +24,11 @@ function App() {
   }, [activeRoom]);
 
   // Handlers
-const handleLogin = async () => {
-  const uid = await SetUserId(); // Go에서 즉시 반환해도 JS에선 Promise
-  setUserId(uid);
-  setCurrentView('chatRoom');
-};
+  const handleLogin = async () => {
+    const uid = await SetUserId();
+    setUserId(uid);
+    setCurrentView('chatRoom');
+  };
 
   const handleExit = () => {
     Close();
@@ -37,14 +37,14 @@ const handleLogin = async () => {
 
   const handleBackToLogin = () => {
     setCurrentView('login');
-  };
+  }; 
 
   // 새로운 채팅방 생성
   // 리액트 상에서만 생성, 서버와 연결하지 않음
   const handleCreateRoom = () => {
     const newRoomId = uuidv4() // 채팅방ID는 uuid 기반
-    const newRoomName = `Chatroom ${rooms.length + 1}`;
-    const newRoom = { id: newRoomId, name: newRoomName, userCount: 0 };
+    const newRoomName = `Chatroom ${newRoomId.slice(0, 8)}...`;
+    const newRoom = { id: newRoomId, name: newRoomName };
     setRooms([...rooms, newRoom]);
   };
 
@@ -62,14 +62,6 @@ const handleLogin = async () => {
         { id: roomToJoin.id, name: roomToJoin.name }
       ]);
 
-      setRooms(prev =>
-        prev.map(room =>
-          room.id === roomId
-            ? { ...room, userCount: (room.userCount || 0) + 1 }
-            : room
-        )
-      );
-
       StartChat(roomId); // StartChat 호출
     }
 
@@ -84,11 +76,12 @@ const handleLogin = async () => {
 
   // 메시지 송신
   const handleSendMessage = async (messageText) => {
+    if (!activeRoom) return;
+
     const timestamp = new Date(Date.now()).toISOString();
-    const uuid = await GetUserId();
     const newMessage = {
       channel: activeRoom.id,
-      sender: uuid,
+      sender: userId,
       content: messageText,
       timestamp: timestamp
     };
@@ -102,19 +95,23 @@ const handleLogin = async () => {
   };
 
   // 채팅방 나가기
-  const handleExitRoom = (roomId) => {
+  const handleExitRoom = async (roomId) => {
+    await CloseChat(roomId)
+
     setActiveRoom(null);
     setMessages([]);
     setJoinedRooms(prev => prev.filter(room => room.id !== roomId));
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === roomId
-          ? { ...room, userCount: Math.max(0, (room.userCount || 0) - 1) }
-          : room
-      )
-    );
+  }
 
-    CloseChat(roomId) // CloseChat 호출
+  const handleGetRoomList = async () => {
+    const roomList = await GetChannelList()
+    if(roomList == null) return;
+
+    const roomObjects = roomList.map(id => ({
+        id: id,
+        name: `Chatroom ${id.slice(0, 8)}...`,
+      }));
+      setRooms(roomObjects);
   }
 
   const renderView = () => {
@@ -129,6 +126,7 @@ const handleLogin = async () => {
               onJoinRoom={handleJoinRoom}
               onCreateRoom={handleCreateRoom}
               onBackToLogin={handleBackToLogin}
+              onGetRoomList={handleGetRoomList}
             />
             {activeRoom ? (
               <ChatRoom

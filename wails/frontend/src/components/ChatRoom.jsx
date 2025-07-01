@@ -55,7 +55,7 @@ function ChatRoom({
             </div>
           ))
         ) : (
-          <div className="no-messages">Start a conversation!</div> 
+          <div className="no-messages">Send your first message to connect!</div> 
         )}
         <div ref={messagesEndRef} />
       </div>

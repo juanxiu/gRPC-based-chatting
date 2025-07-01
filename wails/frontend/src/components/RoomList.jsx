@@ -5,12 +5,14 @@ function RoomList({
   rooms,
   onJoinRoom,
   onCreateRoom,
-  onBackToLogin
+  onBackToLogin,
+  onGetRoomList
 }) {
   return (
     <div className="room-list-container room-list-sidebar">
       <div className="room-list-header"> 
          <div>💬 CloudClub</div>
+          <button className="refresh-room-btn" onClick={onGetRoomList}>Refresh</button>
       </div>
 
       <ul className="room-items hide-scrollbar">
@@ -19,7 +21,6 @@ function RoomList({
             <li key={room.id} className="room-item" onClick={() => onJoinRoom(room.id)}>
               <span className="room-name">{room.name}</span>
               <span className="room-meta">
-                <span className="user-count">{room.userCount || 0}</span>
                 <span className="dot">•</span>
               </span>
             </li>
