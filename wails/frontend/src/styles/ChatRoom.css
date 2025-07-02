@@ -90,10 +90,10 @@
   border-bottom-right-radius: 5px;
 }
 
-.no-messages {
+.system {
   text-align: center;
   color: #888;
-  margin-top: 30px;
+  margin: 30px 0;
   font-size: 1.1rem;
 }
 

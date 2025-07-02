@@ -73,7 +73,7 @@ func (c *Client) SetWailsContext(ctx context.Context) {
 }
 
 // 사용자 구분을 위한 uuid 발급
-func (c *Client) SetUserId() string {
+func (c *Client) SetUserId() {
 	md, ok := metadata.FromOutgoingContext(c.ctx)
 	var uid string
 
@@ -82,14 +82,12 @@ func (c *Client) SetUserId() string {
 		if len(val) > 0 { // 패닉 방지
 			uid = val[0]
 			log.Printf("%s가 이미 설정되어 있음", uid)
-			return uid
 		}
 	}
 
 	uid = uuid.NewString()
 	c.ctx = metadata.AppendToOutgoingContext(c.ctx, "user_uuid", uid)
 	log.Printf("%s 설정 완료", uid)
-	return uid
 }
 
 func (c *Client) GetUserId() string {
