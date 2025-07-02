@@ -5,7 +5,7 @@ import LoginExit from './components/LoginExit';
 import RoomList from './components/RoomList';
 import ChatRoom from './components/ChatRoom';
 import { Quit, EventsOn, EventsOff } from '../wailsjs/runtime/runtime';
-import { SetUserId, StartChat, Close, CloseChat, SendChatMessage, GetMessageHistory, GetChannelList } from '../wailsjs/go/client/Client'
+import { SetUserId, GetUserId, StartChat, Close, CloseChat, SendChatMessage, GetMessageHistory, GetChannelList } from '../wailsjs/go/client/Client'
 import { useEffect } from 'react';
 
 function App() {
@@ -25,7 +25,8 @@ function App() {
 
   // Handlers
   const handleLogin = async () => {
-    const uid = await SetUserId();
+    await SetUserId()
+    const uid = await GetUserId();
     setUserId(uid);
     setCurrentView('chatRoom');
   };
@@ -53,7 +54,7 @@ function App() {
     // 채팅방이 존재하는지 찾기
     const roomToJoin = rooms.find(room => room.id === roomId);
     if (!roomToJoin) return;
-
+    
     // 이미 가입한 방인지 확인
     const alreadyJoined = joinedRooms.some(room => room.id === roomId);
     if (!alreadyJoined) {
@@ -61,16 +62,25 @@ function App() {
         ...prev,
         { id: roomToJoin.id, name: roomToJoin.name }
       ]);
+      setMessages([]);
 
-      StartChat(roomId); // StartChat 호출
+      await StartChat(roomId);
+      
+      // 입장 메시지 전송
+      // const timestamp = new Date(Date.now()).toISOString();
+      // const newMessage = {
+      //   channel: roomToJoin.id,
+      //   sender: "admin",
+      //   content: `${userId} join the chat room!`,
+      //   timestamp: timestamp
+      // };
+      // await SendChatMessage(newMessage)
+    } else {
+      const history = await GetMessageHistory(roomId);
+      setMessages(history || []);
     }
 
     setActiveRoom(roomToJoin);
-
-    // 이전 메시지 불러오기
-    const history = await GetMessageHistory(roomId);
-    setMessages(history || []);
-
     setCurrentView('chatRoom');
   };
 
@@ -96,8 +106,16 @@ function App() {
 
   // 채팅방 나가기
   const handleExitRoom = async (roomId) => {
-    await CloseChat(roomId)
+    // const timestamp = new Date(Date.now()).toISOString();
+    // const newMessage = {
+    //   channel: activeRoom.id,
+    //   sender: "admin",
+    //   content: `${userId} left the chat room!`,
+    //   timestamp: timestamp
+    // };
+    // await SendChatMessage(newMessage)
 
+    await CloseChat(roomId)
     setActiveRoom(null);
     setMessages([]);
     setJoinedRooms(prev => prev.filter(room => room.id !== roomId));
