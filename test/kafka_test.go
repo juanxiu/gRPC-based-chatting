@@ -21,9 +21,9 @@ func TestKafkaProtobufProduce(t *testing.T) {
 
 	// 2. 메시지 생성 (chatProto.ChatMessage)
 	msg := &chatProto.ChatMessage{
-		Sender:  proto.String("userA"),
-		Channel: proto.String("room1"),
-		Content: proto.String("테스트 메시지입니다!"),
+		Sender:  "userA",
+		Channel: "room1",
+		Content: "테스트 메시지입니다!",
 	}
 
 	// 3. Protobuf 직렬화
