@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	serverAddr = flag.String("addr", "localhost:50051", "the address to connect to")
+	serverAddr = flag.String("addr", "3.38.170.112:50051", "the address to connect to")
 )
 
 type Client struct {
