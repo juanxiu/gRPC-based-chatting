@@ -10,7 +10,8 @@ go로 구현한 gRPC 기반 채팅 시스템
 - Containerization: Docker, Docker Compose 
 
 ### 아키텍처 
-![Image](https://github.com/user-attachments/assets/fc905055-7846-4e40-a954-f497d423d29b)
+![image](https://github.com/user-attachments/assets/e20e231f-4391-42c7-bc3d-60d4eba86ac9)
+
 
 ### 프로젝트 특징
 
@@ -29,7 +30,7 @@ go로 구현한 gRPC 기반 채팅 시스템
 - 따라서 웹 브라우저 대신 데스크탑 애플리케이션 방식으로 구현
 - wails framework는 Go 언어와 웹 기술을 결합해 데스크톱 애플리케이션을 개발할 수 있게 해주는 프레임워크로써 사용
 
-### 채팅 동작(클라이언트)
+### 채팅 메시지 플로우
 
 - 사용자의 데스크탑 애플리케이션 접속
 - 사용자의 채팅방 입장 및 gRPC 서버와의 양방향 스트리밍 연결 시작
@@ -63,7 +64,7 @@ go로 구현한 gRPC 기반 채팅 시스템
 
 3. Kafka Consumer 동작
 
-    - 서버는 Kafka의 chat-topic을 컨슈머로 구독합
+    - 서버는 Kafka의 chat-topic을 컨슈머로 구독
     - 수신한 메시지를 역직렬화(Protobuf)하여, 해당 채널에 접속 중인 모든 클라이언트 세션에 전달
 
 4. 브로드캐스트
